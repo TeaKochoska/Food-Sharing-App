@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  address   String
+  latitude  Float
+  longitude Float
+  rating    Float    @default(0.0)
+  meals     Meal[]
+  createdAt DateTime @default(now())
+}
+
+model Meal {
+  id                String     @id @default(uuid())
+  restaurantId      String
+  restaurant        Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  mealName          String     @db.VarChar(255)
+  description       String?    @db.Text
+  imageUrl          String
+  pickupStartTime   String
+  pickupEndTime     String
+  pickupDate        String
+  originalPrice     Decimal    @db.Decimal(10, 2)
+  discountedPrice   Decimal    @db.Decimal(10, 2)
+  availableQuantity Int        @default(1)
+  createdAt         DateTime   @default(now())
+}
