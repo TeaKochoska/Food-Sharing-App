@@ -180,6 +180,64 @@ app.get('/api/meals' ,async(req,res) => {
     }
 });
 
+//PUT ROUTE: Update a meal by id
+app.put('/api/meals/:id' , async(req,res) =>{
+    try{
+        const {id}= req.params;
+        const{
+            mealName,
+            description,
+            imageUrl,
+            pickupStartTime,
+            pickupEndTime,
+            pickupDate,
+            originalPrice,
+            discountedPrice,
+            availableQuantity
+        }=req.body;
+
+        const updatedMeal=await prisma.meal.update({
+            where:{id:id},
+            data: {
+                mealName,
+                description,
+                imageUrl,
+                pickupStartTime,
+                pickupEndTime,
+                pickupDate,
+                originalPrice: originalPrice !== undefined ? parseFloat(originalPrice) : undefined,
+                discountedPrice: discountedPrice !== undefined ? parseFloat(discountedPrice) : undefined,
+                availableQuantity: availableQuantity !== undefined ? parseInt(availableQuantity) : undefined
+            },
+        });
+
+        res.status(200).json({
+            message: 'Meal updated successfully!',
+            meal:updatedMeal
+        });
+    }catch(error){
+        console.error('Error updating meal:', error);
+        res.status(500).json({ error: 'Meal not found or internal server error'});
+    }
+});
+
+//DELETE ROUTE:Delete a meal by ID
+app.delete('/api/meals/:id', async(req,res) => {
+    try{
+        const {id} =req.params;
+        await prisma.meal.delete({
+            where:{id:id},
+        });
+
+        res.status(200).json({
+            message: 'Meal deleted successfully!',
+        });
+    }catch(error){
+        console.error('Error deleting meal:', error);
+        res.status(500).json({ error: 'Meal not found or internal server error'})
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
