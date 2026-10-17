@@ -107,6 +107,79 @@ app.delete('/api/restaurants/:id' , async(req,res) => {
     }
 });
 
+//POST ROUTE: Create a new meal for a specific restaurant
+app.post('/api/meals' ,async (req,res) => {
+    try{
+        const{
+            restaurantId,
+            mealName,
+            description,
+            imageUrl,
+            pickupStartTime,
+            pickupEndTime,
+            pickupDate,
+            originalPrice,
+            discountedPrice,
+            availableQuantity
+        } = req.body;
+
+        if( !restaurantId || !mealName || !pickupStartTime || !pickupEndTime || !pickupDate || originalPrice === undefined || discountedPrice === undefined){
+            return res.status(400).json({ error: 'Missing required fields for the meal!' });
+        }
+
+        const restaurantExists=await prisma.restaurant.findUnique({
+            where: {id: restaurantId}
+        });
+
+        if(!restaurantExists){
+            return res.status(404).json({ error: 'Restaurant not found!' })
+        }
+
+        const newMeal = await prisma.meal.create({
+            data: {
+                restaurantId,
+                mealName,
+                description,
+                imageUrl: imageUrl || '',
+                pickupStartTime,
+                pickupEndTime,
+                pickupDate,
+                originalPrice: parseFloat(originalPrice),
+                discountedPrice: parseFloat(discountedPrice),
+                availableQuantity: availableQuantity !== undefined ? parseInt(availableQuantity) : 1
+            },
+        });
+
+        res.status(201).json({
+            message: 'Meal created successfully!',
+            meal: newMeal,
+        });
+    }catch (error){
+        console.error('Error creating meal:', error);
+        res.status(500).json({ error: 'Internal server error'})
+    }
+});
+
+//GET ROUTE:Get all meals (or meals filtered by restaurant id)
+app.get('/api/meals' ,async(req,res) => {
+    try{
+        const meals=await prisma.meal.findMany({
+            include:{
+                restaurant:true //automatically puts the data for the restaurant in the response
+            }
+        });
+
+        res.status(200).json({
+            message: 'Meals fetched successfully!',
+            count :meals.length,
+            meals
+        });
+    }catch(error){
+        console.error('Error fetching meals:', error);
+        res.status(500).json({ error: 'Internal server error' })
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

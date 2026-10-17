@@ -16,6 +16,7 @@ model Restaurant {
   rating    Float    @default(0.0)
   meals     Meal[]
   createdAt DateTime @default(now())
+
 }
 
 model Meal {
